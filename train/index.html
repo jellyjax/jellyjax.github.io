@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI信息素养大赛训练平台</title>
+<style>
+:root {
+  --bg: #FFF8F0;
+  --card: #FFFDF8;
+  --primary: #C4956A;
+  --primary-dark: #A07850;
+  --primary-light: #E8D5BC;
+  --text: #3D2B1F;
+  --text-secondary: #7A6B5D;
+  --border: #E8DDD0;
+  --accent: #D4A574;
+  --accent-light: #F5EDE3;
+  --success: #8BA888;
+  --danger: #C48070;
+  --warm-shadow: rgba(196, 149, 106, 0.15);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+.header {
+  background: linear-gradient(135deg, #D4A574 0%, #C4956A 50%, #B8885E 100%);
+  color: #fff;
+  padding: 24px 20px 18px;
+  position: sticky;
+  top: 0; z-index: 100;
+  box-shadow: 0 2px 12px rgba(196,149,106,0.3);
+}
+.header h1 { font-size: 22px; font-weight: 700; letter-spacing: 1px; margin-bottom: 2px; }
+.header p { font-size: 13px; opacity: 0.85; }
+.nav {
+  display: flex; overflow-x: auto; gap: 0;
+  background: var(--card); border-bottom: 1px solid var(--border);
+  position: sticky; top: 82px; z-index: 99;
+  scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.nav::-webkit-scrollbar { display: none; }
+.nav-item {
+  flex-shrink: 0; padding: 10px 14px; font-size: 13px;
+  color: var(--text-secondary); cursor: pointer;
+  border-bottom: 2px solid transparent; transition: all 0.2s;
+  white-space: nowrap; user-select: none;
+}
+.nav-item:hover { color: var(--primary-dark); background: var(--accent-light); }
+.nav-item.active {
+  color: var(--primary-dark); border-bottom-color: var(--primary);
+  font-weight: 600; background: var(--accent-light);
+}
+.main { max-width: 960px; margin: 0 auto; padding: 16px 16px 80px; }
+.page { display: none; }
+.page.active { display: block; }
+.card {
+  background: var(--card); border-radius: 12px;
+  border: 1px solid var(--border); padding: 18px 16px;
+  margin-bottom: 12px; box-shadow: 0 2px 8px var(--warm-shadow);
+  transition: box-shadow 0.2s;
+}
+.card:hover { box-shadow: 0 4px 16px var(--warm-shadow); }
+.card-title {
+  font-size: 16px; font-weight: 600; color: var(--primary-dark);
+  margin-bottom: 8px;
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer;
+}
+.card-title .toggle { font-size: 12px; color: var(--text-secondary); transition: transform 0.2s; }
+.card-title .toggle.open { transform: rotate(180deg); }
+.card-body { font-size: 14px; color: var(--text-secondary); line-height: 1.8; display: none; }
+.card-body.open { display: block; }
+.tag {
+  display: inline-block; font-size: 11px; padding: 2px 8px;
+  border-radius: 10px; margin-right: 4px; margin-bottom: 4px;
+  background: var(--accent-light); color: var(--primary-dark);
+}
+.tag-group { background: var(--primary); color: #fff; }
+.module-group { margin-bottom: 20px; }
+.group-header {
+  font-size: 16px; font-weight: 700; color: var(--primary-dark);
+  padding: 10px 0 6px; border-bottom: 2px solid var(--border);
+  margin-bottom: 12px;
+}
+.group-header span { font-size: 12px; color: var(--text-secondary); font-weight: 400; }
+.search-box {
+  width: 100%; padding: 10px 14px; border: 1px solid var(--border);
+  border-radius: 8px; font-size: 14px; background: var(--card);
+  color: var(--text); outline: none; margin-bottom: 16px;
+  transition: border-color 0.2s;
+}
+.search-box:focus { border-color: var(--primary); }
+.tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.tool-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px;
+  box-shadow: 0 2px 8px var(--warm-shadow);
+}
+.tool-name { font-size: 16px; font-weight: 700; color: var(--primary-dark); margin-bottom: 2px; }
+.tool-provider { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
+.tool-entry { font-size: 12px; color: var(--success); margin-bottom: 6px; }
+.tool-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+.tool-desc { font-size: 13px; color: var(--text-secondary); }
+.exam-container { max-width: 700px; margin: 0 auto; }
+.exam-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 16px; background: var(--card);
+  border: 1px solid var(--border); border-radius: 12px;
+  margin-bottom: 16px; font-size: 14px;
+}
+.exam-timer { color: var(--danger); font-weight: 700; font-size: 18px; font-variant-numeric: tabular-nums; }
+.exam-progress { color: var(--text-secondary); }
+.question-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px;
+  box-shadow: 0 2px 8px var(--warm-shadow);
+}
+.q-number { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+.q-type {
+  display: inline-block; font-size: 11px; padding: 2px 8px;
+  border-radius: 4px; margin-bottom: 8px; font-weight: 600;
+}
+.q-type.single { background: #E8F0E8; color: #5A7A5A; }
+.q-type.multi { background: #F0E8E0; color: #8A6A4A; }
+.q-type.judge { background: #E8EAF0; color: #4A5A7A; }
+.q-text { font-size: 16px; font-weight: 500; margin-bottom: 16px; line-height: 1.7; }
+.options { display: flex; flex-direction: column; gap: 8px; }
+.option {
+  padding: 10px 14px; border: 1px solid var(--border);
+  border-radius: 8px; cursor: pointer; transition: all 0.15s;
+  font-size: 14px; user-select: none;
+}
+.option:hover { border-color: var(--primary); background: var(--accent-light); }
+.option.selected { border-color: var(--primary); background: var(--accent-light); font-weight: 600; }
+.option.correct { border-color: var(--success); background: #F0F5EE; color: #3D5A3D; }
+.option.wrong { border-color: var(--danger); background: #F8EEEC; color: #7A4A40; }
+.option.disabled { cursor: default; opacity: 0.7; }
+.exam-actions { display: flex; justify-content: space-between; margin-top: 16px; gap: 10px; }
+.btn {
+  padding: 10px 24px; border: none; border-radius: 8px;
+  font-size: 14px; cursor: pointer; transition: all 0.2s;
+  font-weight: 500;
+}
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-secondary { background: var(--accent-light); color: var(--primary-dark); }
+.btn-secondary:hover { background: var(--border); }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); }
+.btn-outline:hover { border-color: var(--primary); color: var(--primary-dark); }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-success { background: var(--success); color: #fff; }
+.btn-small { padding: 6px 14px; font-size: 12px; }
+.exam-start { text-align: center; padding: 40px 20px; }
+.exam-start h2 { font-size: 20px; color: var(--primary-dark); margin-bottom: 12px; }
+.exam-start p { font-size: 14px; color: var(--text-secondary); margin-bottom: 8px; }
+.exam-start .rules { text-align: left; max-width: 400px; margin: 16px auto; }
+.exam-start .rules li { margin-bottom: 6px; font-size: 14px; color: var(--text-secondary); }
+.result-card { text-align: center; padding: 30px 20px; }
+.result-score { font-size: 48px; font-weight: 700; color: var(--primary-dark); margin: 12px 0; }
+.result-detail { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
+.result-stat { padding: 12px; border-radius: 8px; background: var(--accent-light); }
+.result-stat .num { font-size: 24px; font-weight: 700; color: var(--primary-dark); }
+.result-stat .label { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.result-chart { max-width: 300px; margin: 16px auto; }
+.result-review { margin-top: 20px; text-align: left; }
+.result-item { padding: 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
+.result-item:last-child { border-bottom: none; }
+.result-item .ri-q { font-weight: 500; margin-bottom: 4px; }
+.result-item .ri-a { font-size: 13px; color: var(--text-secondary); }
+.result-item .ri-a.c { color: var(--success); }
+.result-item .ri-a.w { color: var(--danger); }
+.error-item {
+  border-left: 3px solid var(--accent); padding: 14px 16px;
+  margin-bottom: 12px; background: var(--card);
+  border-radius: 0 8px 8px 0; border: 1px solid var(--border);
+  border-left-width: 3px;
+}
+.error-item h3 { font-size: 15px; color: var(--primary-dark); margin-bottom: 6px; }
+.error-item p { font-size: 14px; color: var(--text-secondary); line-height: 1.7; }
+.pred-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 18px; margin-bottom: 14px;
+  box-shadow: 0 2px 8px var(--warm-shadow);
+}
+.pred-header { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+.pred-id { font-size: 12px; color: var(--text-secondary); }
+.pred-difficulty { font-size: 11px; padding: 2px 8px; border-radius: 4px; }
+.diff-easy { background: #E8F0E8; color: #5A7A5A; }
+.diff-medium { background: #F0E8D0; color: #8A7A3A; }
+.diff-hard { background: #F0D8D0; color: #8A5A4A; }
+.pred-question { font-size: 15px; font-weight: 500; margin-bottom: 8px; }
+.pred-option { font-size: 14px; padding: 4px 0; color: var(--text-secondary); }
+.pred-answer { font-size: 13px; padding: 8px 12px; border-radius: 6px; background: var(--accent-light); margin-bottom: 6px; }
+.pred-answer strong { color: var(--success); }
+.pred-analysis { font-size: 13px; color: var(--text-secondary); line-height: 1.7; }
+.pred-basis { font-size: 12px; color: var(--primary); margin-top: 4px; }
+.filter-bar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.filter-btn {
+  padding: 4px 12px; border-radius: 14px;
+  border: 1px solid var(--border); background: var(--card);
+  color: var(--text-secondary); font-size: 12px; cursor: pointer;
+  transition: all 0.2s;
+}
+.filter-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.wrong-item { padding: 12px 14px; border-bottom: 1px solid var(--border); font-size: 14px; }
+.wrong-item .wi-q { font-weight: 500; margin-bottom: 4px; }
+.wrong-item .wi-info { font-size: 12px; color: var(--text-secondary); }
+.wrong-item .wi-correct { color: var(--success); }
+.progress-bar { height: 8px; background: var(--accent-light); border-radius: 4px; overflow: hidden; margin-top: 6px; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); border-radius: 4px; transition: width 0.4s; }
+.progress-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
+.progress-header { display: flex; justify-content: space-between; font-size: 13px; }
+.progress-title { font-weight: 500; }
+.progress-pct { color: var(--primary-dark); font-weight: 600; }
+.inline-chart svg { max-width: 100%; height: auto; }
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text-secondary); font-size: 15px; }
+.kbd { display: inline-block; padding: 2px 6px; font-size: 11px; border: 1px solid var(--border); border-radius: 4px; background: var(--card); }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.fade-in { animation: fadeIn 0.25s ease; }
+.modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4); z-index: 200;
+  display: none; align-items: center; justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--card); border-radius: 16px; padding: 24px;
+  max-width: 420px; width: 90%;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+}
+.modal h3 { font-size: 18px; margin-bottom: 12px; color: var(--primary-dark); }
+.modal p { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.6; }
+.modal-btns { display: flex; gap: 10px; justify-content: flex-end; }
+@media (max-width: 600px) {
+  .header h1 { font-size: 18px; }
+  .nav-item { padding: 8px 10px; font-size: 12px; }
+  .tool-grid { grid-template-columns: 1fr; }
+  .result-detail { grid-template-columns: 1fr; }
+  .exam-actions { flex-wrap: wrap; }
+  .btn { flex: 1; text-align: center; }
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>AI信息素养大赛训练平台</h1>
+  <p>全国大学生AI信息素养大赛 备考训练</p>
+</div>
+<div class="nav" id="nav">
+  <div class="nav-item active" data-page="home">首页</div>
+  <div class="nav-item" data-page="modules">知识模块</div>
+  <div class="nav-item" data-page="tools">AI工具库</div>
+  <div class="nav-item" data-page="errors">高频易错</div>
+  <div class="nav-item" data-page="exam">模拟考试</div>
+  <div class="nav-item" data-page="predict">预测题</div>
+  <div class="nav-item" data-page="wrong">错题集</div>
+  <div class="nav-item" data-page="progress">学习进度</div>
+</div>
+<div class="main">
+  <div class="page active" id="page-home">
+    <div class="card" style="border-left:3px solid var(--primary);">
+      <h2 style="font-size:18px;color:var(--primary-dark);margin-bottom:8px;">大赛信息</h2>
+      <p style="font-size:14px;color:var(--text-secondary);margin-bottom:6px;">比赛时间：9月22日 - 9月24日</p>
+      <p style="font-size:14px;color:var(--text-secondary);margin-bottom:6px;">题型题量：50题（20单选 x 2分 + 20多选 x 2.5分 + 10判断 x 1分）= 100分</p>
+      <p style="font-size:14px;color:var(--text-secondary);margin-bottom:6px;">考试时长：60分钟</p>
+      <p style="font-size:14px;color:var(--text-secondary);">开放资源：CNKI、LeapSpace 等指定学术平台</p>
+    </div>
+    <div class="card">
+      <h2 style="font-size:18px;color:var(--primary-dark);margin-bottom:8px;">平台功能</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;">
+        <div style="padding:12px;background:var(--accent-light);border-radius:8px;font-size:13px;">
+          <strong style="color:var(--primary-dark);">知识模块</strong><br>50个模块按5大主题分组，支持搜索过滤</div>
+        <div style="padding:12px;background:var(--accent-light);border-radius:8px;font-size:13px;">
+          <strong style="color:var(--primary-dark);">AI工具库</strong><br>14个核心工具含能力与考点说明</div>
+        <div style="padding:12px;background:var(--accent-light);border-radius:8px;font-size:13px;">
+          <strong style="color:var(--primary-dark);">模拟考试</strong><br>随机抽题键盘快捷键自动评分</div>
+        <div style="padding:12px;background:var(--accent-light);border-radius:8px;font-size:13px;">
+          <strong style="color:var(--primary-dark);">错题集</strong><br>自动记录做对3次自动移出</div>
+      </div>
+    </div>
+    <div class="card" style="text-align:center;padding:24px;">
+      <p style="font-size:15px;color:var(--text-secondary);">使用快捷键 <span class="kbd">Alt+1</span> 到 <span class="kbd">Alt+8</span> 快速切换页面</p>
+    </div>
+  </div>
+  <div class="page" id="page-modules">
+    <input class="search-box" id="moduleSearch" placeholder="搜索知识模块..." oninput="renderModules(this.value)">
+    <div id="moduleContainer"></div>
+  </div>
+  <div class="page" id="page-tools">
+    <input class="search-box" id="toolSearch" placeholder="搜索AI工具..." oninput="renderTools(this.value)">
+    <div class="tool-grid" id="toolContainer"></div>
+  </div>
+  <div class="page" id="page-errors"><div id="errorContainer"></div></div>
+  <div class="page" id="page-exam"><div id="examContainer"></div></div>
+  <div class="page" id="page-predict"><div id="predictContainer"></div></div>
+  <div class="page" id="page-wrong">
+    <div style="margin-bottom:12px;"><span style="font-size:14px;color:var(--text-secondary);" id="wrongCount"></span></div>
+    <div class="filter-bar" id="wrongFilter"></div>
+    <div id="wrongContainer"></div>
+  </div>
+  <div class="page" id="page-progress"><div id="progressContainer"></div></div>
+</div>
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h3 id="modalTitle"></h3>
+    <p id="modalText"></p>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" id="modalConfirm" onclick="">确认</button>
+    </div>
+  </div>
+</div>
+<script>
+const MODULES = [
+  ["AI基础知识与伦理规范","了解AI基础知识与伦理规范；熟悉生成式AI相关法律法规：生成式人工智能服务管理暂行办法、生成式人工智能服务安全基本要求、人工智能拟人化互动服务管理暂行办法、各高校AI使用规范、学术出版中AIGC使用边界指南、联合国教科文组织AI能力框架、欧盟人工智能法等"],
+  ["AI学习资源的获取与利用","能从B站/小红书/CSDN/知乎等平台获取AI学习资源；熟悉阿里云开发者社区AI学习路线、科大讯飞AI大学堂、华为云昇腾AI专区、动手学深度学习、Elements of AI"],
+  ["通用AI工具认知与应用","了解DeepSeek/豆包/腾讯元宝/智谱清言/通义/Kimi/讯飞星火/文心/纳米AI等工具；掌握网页版/APP/微信小程序/浏览器插件等多种入口形态"],
+  ["办公场景下的AI工具","掌握Kimi PPT/通义PPT创作/豆包PPT生成/智谱清言PPT制作；掌握豆包/讯飞星火写作功能；能用豆包/智谱清言做数据处理和分析"],
+  ["科研场景下的AI工具","了解LeapSpace/CNKI AI/星火科研助手/秘塔AI搜索/豆包/AMiner等科研AI工具；LeapSpace: Trust Card/Claim Radar/Deep Research/Writing Coach"],
+  ["多模态AI工具","熟悉豆包/智谱清言/万相/可灵AI图像和视频生成；豆包音乐生成；闪剪/蝉镜数字人"],
+  ["AI开源与开放数据资源","GitHub/ModelScope/百度AI Studio/和鲸/天池/DataFountain/OpenDataLab"],
+  ["政策学习资源","相关政策学习数据库、党建学习平台、全国高校课程思政教学资源服务平台"],
+  ["开放数据资源","国家统计局查询系统；统计年鉴；城市政府数据平台；国家科学数据中心20个学科中心；ScienceDB；世界银行开放数据；AI知数智能分析平台"],
+  ["法律信息资源","国家法律法规数据库；国家行政法规库；人民法院案例库；中国执行信息网；中国裁判文书网；中国法律知识资源总库"],
+  ["标准与商标信息资源","国家标准全文公开系统；全国标准信息公共服务平台；商标查询系统"],
+  ["专利和地理标志","中国专利公布公告系统；专利检索及分析系统；USPTO/Espacenet/Patentscope"],
+  ["反诈防骗信息资源","国家反诈中心APP功能；中国互联网联合辟谣平台"],
+  ["医卫信息查询","卫健委官网；国家药监局数据查询；CHKD AI增强检索"],
+  ["文教信息查询","中国教育考试网；研招网；国家大学生就业服务平台"],
+  ["证书资格查询","学信网学历查询；证券/基金/银行/注会/律师等从业资格查询"],
+  ["在线开放课程资源","中国大学MOOC/学堂在线/智慧树/学银在线；国家高等教育智慧教育平台"],
+  ["开放平台学习资源","高校信息素养教育数据库；知网学术大讲堂；学习强国/TED/B站；知乎直答"],
+  ["免费电子书","HathiTrust；剑桥/牛津OA电子书；NCBI Bookshelf"],
+  ["国家图书馆数字资源","国家图书馆特色资源库(古籍/民国文献)；美国国会图书馆免费数字资源"],
+  ["期刊论文检索","CNKI/万方/维普；Elsevier ScienceDirect/Wiley/Taylor&Francis"],
+  ["学术会议论文","CNKI/万方会议论文数据库；IEEE会议信息检索"],
+  ["学位论文","CNKI/万方/维普学位论文；国图博士论文；MIT Theses"],
+  ["OA/预印本资源","DOAJ/OALIB；arXiv/ChinaXiv；剑桥期刊OA文献"],
+  ["科研项目数据库","国家社科基金项目数据库；国家自然科学基金大数据知识管理服务门户"],
+  ["学术搜索","Google Scholar/百度学术/微软学术；引用追踪与学术影响力分析"],
+  ["图片搜索","CNKI学术图片库；百度图片/必应图片；各数据库图片检索功能"],
+  ["网址导航","常用学术资源导航网站；各数据库/平台网址归类管理；浏览器收藏夹策略"],
+  ["网络指数","百度指数/微信指数/抖音指数；关键词趋势与热度分析"],
+  ["馆藏查询系统","国家图书馆馆藏目录查询；各高校OPAC系统；联合编目与文献传递"],
+  ["高级检索","CNKI/维普/万方/Elsevier/Wiley/PubMed高级检索功能；多条件组合检索"],
+  ["布尔逻辑检索","AND/OR/NOT三种布尔逻辑；各数据库中的布尔检索实现"],
+  ["截词检索","*和?等截词符的使用；PubMed/Springer/Sage的截词运算符"],
+  ["精确与模糊匹配","CNKI/维普/万方精确/模糊选项含义；外文数据库精确匹配(双引号)"],
+  ["结果筛选","CNKI/维普/万方/ACM/IOPscience结果筛选功能；分组统计分析"],
+  ["字段限制检索","中外文数据库常见检索字段(关键词/题名/作者/单位)；CNKI/Wiley/PubMed字段限制"],
+  ["搜索引擎检索语法","filetype/site/inurl/intitle等语法；百度/搜狗高级搜索"],
+  ["思维导图/笔记/问卷","XMind/ProcessOn；印象笔记/有道云笔记/Notion；问卷星/腾讯问卷"],
+  ["OFFICE和浏览器插件","常用浏览器插件；Office/WPS办公插件的安装与使用"],
+  ["截图与录屏","Snipaste/QQ截图；OBS录屏；截图录屏在信息收集中的应用"],
+  ["PDF文件处理","Adobe Acrobat/福昕PDF；PDF转Word/合并/拆分/压缩；OCR文字识别"],
+  ["学术评价与投稿选刊","CNKI写作投稿服务平台；影响因子/分区/引用次数；期刊匹配"],
+  ["学术伦理","学术诚信与学术不端；合理使用AI边界；抄袭/伪造/篡改的界定"],
+  ["参考文献著录格式","GB/T 7714-2015国标参考文献格式；不同文献类型[J/M/D/C/N/S]"],
+  ["论文排版","Word/WPS/LaTeX论文排版规范；页眉页脚/目录/页码/图表编号"],
+  ["文献管理工具","知网研学E-study/NoteExpress/EndNote/Zotero"],
+  ["文献追踪工具","CNKI学术趋势/引文追踪；Google Scholar引用通知；Stork/Researcher"],
+  ["数据处理工具","Excel数据处理；SPSS/Stata统计分析；Python/R数据分析"],
+  ["数据可视化工具","Excel图表/Tableau/ECharts/Flourish；图表类型选择与数据呈现"],
+  ["文献可视化工具","CNKI AI学术趋势(观点网络全景分析/Deep Research)；VOSviewer/CiteSpace"]
+];
+const MODULE_GROUPS = [
+  ["AI素养",["模块01","模块02","模块03","模块04","模块05","模块06","模块07"]],
+  ["政府与公开信息",["模块08","模块09","模块10","模块11","模块12","模块13","模块14","模块15","模块16"]],
+  ["学术信息资源",["模块17","模块18","模块19","模块20","模块21","模块22","模块23","模块24","模块25","模块26","模块27","模块28","模块29","模块30"]],
+  ["检索技术",["模块31","模块32","模块33","模块34","模块35","模块36","模块37"]],
+  ["工具与软件",["模块38","模块39","模块40","模块41","模块42","模块43","模块44","模块45","模块46","模块47","模块48","模块49","模块50"]]
+];
+const TOOLS = [
+  ["DeepSeek","深度求索","网页/API/APP","推理/代码/逻辑分析","编程辅助/数学推理"],
+  ["豆包","字节跳动","网页/APP/小程序","多模态/PPT/文档/图像/音乐","办公/创作"],
+  ["腾讯元宝","腾讯","网页/APP","多模型切换","日常问答/信息检索"],
+  ["Kimi","月之暗面","网页/APP","长文本200万字/联网/文件分析","长文档/学术论文"],
+  ["通义/千问","阿里云","网页/APP/API","多模态/文档/代码/图像/会议","办公/创作"],
+  ["智谱清言","智谱AI","网页/APP/API","GLM多模态/代码/搜索/PPT","学术/编程"],
+  ["讯飞星火","科大讯飞","网页/APP/API","语音交互强/多模态/科研助手","教育/科研"],
+  ["文心一言","百度","网页/APP/API","搜索增强/知识问答/内容生成","知识检索"],
+  ["纳米AI","360","网页/APP","多模型聚合平台","日常问答"],
+  ["万相","阿里云","网页","图像/视频生成","多模态创作"],
+  ["可灵AI","快手","网页/APP","视频生成","视频创作"],
+  ["LeapSpace","爱思唯尔","网页","Trust Card/Claim Radar/Deep Research/Writing Coach","科研"],
+  ["CNKI AI","中国知网","网页","学术趋势/Deep Research/智能研读/对比分析","学术研究"],
+  ["星火科研助手","科大讯飞","网页","学术翻译/英文润色/全文审校","科研论文"]
+];
+const ERRORS = [
+  ["混淆学术搜索引擎与通用搜索引擎","Google Scholar、百度学术属于学术搜索引擎，检索结果偏重学术文献；百度、Google通用搜索检索范围更广但学术精度低。答题时注意题目问的是学术搜索还是通用搜索。"],
+  ["分不清开放获取(OA)与免费资源","OA是经过同行评议的免费学术文献，有正式出版流程和版权许可（如CC协议），不是简单的免费资源。DOAJ收录的是OA期刊，不是普通免费网站。"],
+  ["混淆截词检索符号","不同数据库截词符不同：*代表无限截词（任意多个字符），?代表有限截词（一个字符）。PubMed中用*做截词，但在单词开头不可用；双引号是精确匹配不是截词。"],
+  ["布尔逻辑优先级理解错误","NOT优先级最高，AND次之，OR最低。使用不同布尔逻辑算符组合时，建议用括号明确优先级，否则检索结果可能和预期不同。"],
+  ["混淆GB/T 7714参考文献格式","[J]期刊文章 [M]专著 [D]学位论文 [C]会议论文 [N]报纸文章 [S]标准 [P]专利。常考：电子文献加[EB/OL]，学位论文是[D]不是[J]。"],
+  ["错把影响因子当唯一评价标准","影响因子只是期刊评价指标之一，不能直接衡量单篇论文质量。还有CiteScore、h-index、期刊分区（中科院/汤森路透）等。投稿选刊要综合多个指标。"],
+  ["混淆CNKI不同检索功能","CNKI的高级检索、专业检索、句子检索、学者检索功能不同。句子检索按句子级别匹配；专业检索用字段代码组合检索式；学者检索按作者姓名查找。"],
+  ["忽略政府数据开放平台","国家统计局、各省市数据开放平台是权威数据源，但常被忽略。答题中问宏观统计数据来源，优先选国家统计局/统计年鉴，而不是百度搜索。"],
+  ["混淆学术不端的界定","抄袭/剽窃、伪造数据、篡改数据、不当署名、一稿多投、重复发表都属于学术不端。AI辅助写作不等于学术不端，但直接用AI生成的内容不标注则可能构成。"],
+  ["混淆信息检索中的字段检索","CNKI中SU=主题、TI=题名、KY=关键词、AB=摘要、FT=全文，不同字段检索范围不同。题名字段精度最高但可能漏检，全文检索检全率高但噪声大。PubMed中[tiab]表示标题和摘要。"]
+];
+const PREDICTIONS = [
+  ["单选题","容易","生成式人工智能服务管理暂行办法自何时起施行？","A.2023年6月 B.2023年8月 C.2023年10月 D.2024年1月","B","生成式人工智能服务管理暂行办法自2023年8月15日起施行，是国家网信办等七部门联合发布的AI领域重要法规。","该法规是AI伦理模块核心考点，多次出现在各类信息素养竞赛中。"],
+  ["单选题","中等","在CNKI中，使用检索式 SU=人工智能 AND KY=大模型 表示什么含义？","A.主题含人工智能且关键词含大模型 B.作者含人工智能且单位含大模型 C.全文含人工智能且关键词含大模型 D.标题含人工智能且摘要含大模型","A","SU是CNKI的主题字段(Subject)，KY是关键字段(Keyword)，该检索式表示查找主题包含人工智能且关键词包含大模型的文献。","CNKI字段检索是必考内容，SU/KY/TI/AB是高频字段代码。"],
+  ["多选题","中等","以下哪些属于AI伦理治理的基本原则？","A.透明可解释 B.公平非歧视 C.追求最大利润 D.安全可控 E.人类自主决定","ABDE","AI伦理治理四原则通常包括：透明可解释、公平非歧视、安全可控、人类自主决定。追求最大利润属于商业目标，不属于AI伦理原则。","AI伦理是目前政策关注重点，联合国教科文组织和我国相关法规都有涵盖。"],
+  ["判断题","容易","LeapSpace平台提供Trust Card、Claim Radar、Deep Research和Writing Coach功能。","对","LeapSpace是爱思唯尔推出的AI学术研究平台，Trust Card用于评估文献可信度，Claim Radar追踪研究声明，Deep Research进行深度文献分析，Writing Coach提供写作辅助。","LeapSpace作为大赛指定开放资源，其功能模块极有可能被考查。"],
+  ["单选题","困难","在GB/T 7714-2015参考文献著录格式中，[D]代表什么文献类型？","A.期刊文章 B.专著 C.学位论文 D.会议论文","C","GB/T 7714-2015中：[J]期刊文章、[M]专著、[D]学位论文、[C]会议论文、[N]报纸文章、[S]标准、[P]专利。","参考文献格式是信息素养基础内容，[D]对应Dissertation(学位论文)是区分度高的考点。"],
+  ["多选题","困难","以下哪些数据库支持截词检索功能？","A.PubMed B.CNKI C.Springer D.百度学术 E.Sage","ACE","PubMed支持*截词检索，Springer支持*和?截词，Sage支持*截词。CNKI和百度学术不直接支持截词检索。","截词检索是高级检索技巧，不同数据库支持情况不同需要区分记忆。"],
+  ["判断题","中等","CNKI、万方、维普三者都提供学位论文数据库。","对","CNKI(中国知网)、万方数据、维普资讯均收录学位论文，其中CNKI的博硕士论文库收录最全。三者都是国内主要的中文学术数据库。","三大中文数据库是基础考点，各自特点区分是常见题型。"],
+  ["单选题","中等","以下哪个工具不属于AI学术研究辅助工具？","A.LeapSpace B.CNKI AI C.可灵AI D.星火科研助手","C","可灵AI是快手推出的视频生成工具，属于AI多模态创作工具。LeapSpace、CNKI AI、星火科研助手都是面向学术研究的AI工具。","区分AI工具的应用场景是考试重点，容易出现混淆。"],
+  ["多选题","中等","以下哪些行为属于学术不端？","A.直接复制他人论文未标注引用 B.使用AI润色英文论文语法 C.伪造实验数据 D.一稿多投 E.使用AI生成文献综述并标注为原创","ACDE","使用AI润色语法属于合理使用AI辅助，不构成学术不端。直接复制未标注(A)、伪造数据(C)、一稿多投(D)、用AI生成内容标注为原创(E)均属于学术不端行为。","学术伦理是必考模块，需要清楚区分合理使用AI与学术不端的边界。"],
+  ["判断题","容易","国家反诈中心APP具备来电预警、APP自检和风险查询功能。","对","国家反诈中心APP是公安部推出的反诈工具，核心功能包括：来电预警(识别诈骗电话)、APP自检(检测手机内风险APP)、风险查询(查询可疑账号/网址/IP)。","反诈信息是模块13核心内容，APP功能是实用考点。"]
+];
+
+// ===== QUESTION BANK =====
+const QUESTION_BANK = [
+  {id:"Q001",type:"single",question:"以下哪个文件是规范生成式AI服务的主要法规？",options:"A.网络安全法 B.生成式人工智能服务管理暂行办法 C.数据安全法 D.个人信息保护法",answer:"B",module:"模块01",difficulty:"容易"},
+  {id:"Q002",type:"single",question:"联合国教科文组织发布的AI伦理框架文件名称是？",options:"A.AI发展白皮书 B.AI伦理建议书 C.AI治理蓝皮书 D.AI安全框架",answer:"B",module:"模块01",difficulty:"中等"},
+  {id:"Q003",type:"single",question:"以下哪个不是主流AI大语言模型？",options:"A.DeepSeek B.Photoshop C.通义千问 D.GLM",answer:"B",module:"模块03",difficulty:"容易"},
+  {id:"Q004",type:"single",question:"Kimi AI以什么特色功能著称？",options:"A.图像生成 B.超长文本处理200万字 C.视频剪辑 D.音乐创作",answer:"B",module:"模块03",difficulty:"容易"},
+  {id:"Q005",type:"single",question:"豆包中不包含以下哪种生成能力？",options:"A.PPT生成 B.音乐生成 C.3D模型生成 D.图像生成",answer:"C",module:"模块04",difficulty:"中等"},
+  {id:"Q006",type:"single",question:"以下哪个是学术搜索引擎而非通用搜索引擎？",options:"A.百度 B.Google Scholar C.搜狗 D.360搜索",answer:"B",module:"模块26",difficulty:"容易"},
+  {id:"Q007",type:"single",question:"CNKI中检索式 TI=人工智能 AND FT=大模型 表示什么？",options:"A.标题含人工智能且全文含大模型 B.主题含人工智能且关键词含大模型 C.作者含人工智能且单位含大模型",answer:"A",module:"模块36",difficulty:"中等"},
+  {id:"Q008",type:"single",question:"以下哪个数据库主要提供预印本(Preprint)资源？",options:"A.CNKI B.arXiv C.万方 D.维普",answer:"B",module:"模块24",difficulty:"容易"},
+  {id:"Q009",type:"single",question:"国家社科基金项目数据可通过哪个平台查询？",options:"A.国家自科基金委 B.国家社科基金项目数据库 C.国家统计局 D.教育部官网",answer:"B",module:"模块25",difficulty:"容易"},
+  {id:"Q010",type:"single",question:"以下哪个是开放获取(OA)期刊的权威目录？",options:"A.CNKI B.DOAJ C.维普 D.万方",answer:"B",module:"模块24",difficulty:"中等"},
+  {id:"Q011",type:"single",question:"GB/T 7714-2015中[J]表示什么文献类型？",options:"A.专著 B.期刊文章 C.会议论文 D.学位论文",answer:"B",module:"模块44",difficulty:"容易"},
+  {id:"Q012",type:"single",question:"以下哪个属于有限截词符代表一个字符？",options:"A.* B.? C.% D.#",answer:"B",module:"模块33",difficulty:"中等"},
+  {id:"Q013",type:"single",question:"以下哪个平台可查询学历信息？",options:"A.学信网 B.中国执行信息网 C.中国裁判文书网 D.国家企业信用公示系统",answer:"A",module:"模块16",difficulty:"容易"},
+  {id:"Q014",type:"single",question:"PubMed中[tiab]表示在哪个字段检索？",options:"A.主题词 B.标题和摘要 C.全文 D.作者",answer:"B",module:"模块36",difficulty:"困难"},
+  {id:"Q015",type:"single",question:"百度指数主要用于分析什么？",options:"A.文献影响力 B.关键词搜索趋势 C.学术合作网络 D.期刊分区",answer:"B",module:"模块29",difficulty:"容易"},
+  {id:"Q016",type:"single",question:"NoteExpress属于什么类型的工具？",options:"A.文献管理 B.数据分析 C.图像处理 D.笔记记录",answer:"A",module:"模块46",difficulty:"容易"},
+  {id:"Q017",type:"single",question:"以下哪个不是我国国家层面的开放数据平台？",options:"A.国家统计局 B.Data.gov C.国家科学数据中心 D.全国标准信息公共服务平台",answer:"B",module:"模块09",difficulty:"中等"},
+  {id:"Q018",type:"single",question:"CiteSpace是一种什么工具？",options:"A.文献可视化分析 B.图像处理 C.文献管理 D.数据统计",answer:"A",module:"模块50",difficulty:"容易"},
+  {id:"Q019",type:"single",question:"在布尔逻辑检索中优先级最高的是哪个算符？",options:"A.AND B.OR C.NOT D.三者同级",answer:"C",module:"模块32",difficulty:"中等"},
+  {id:"Q020",type:"single",question:"以下不属于学术不端行为的是？",options:"A.伪造数据 B.使用AI进行语法润色 C.抄袭 D.一稿多投",answer:"B",module:"模块43",difficulty:"容易"},
+  {id:"Q021",type:"single",question:"维普数据库高级检索中字段代码K=代表什么？",options:"A.关键词 B.题名 C.作者 D.机构",answer:"A",module:"模块36",difficulty:"中等"},
+  {id:"Q022",type:"single",question:"VOSviewer常用于什么分析？",options:"A.文献计量与共现分析 B.图像处理 C.数据统计 D.文本翻译",answer:"A",module:"模块50",difficulty:"容易"},
+  {id:"Q023",type:"single",question:"Elsevier ScienceDirect属于什么类型的数据库？",options:"A.中文全文数据库 B.外文全文数据库 C.文摘数据库 D.事实数据库",answer:"B",module:"模块21",difficulty:"容易"},
+  {id:"Q024",type:"single",question:"Espacenet是哪个机构的专利检索系统？",options:"A.中国国家知识产权局 B.欧洲专利局 C.美国专利商标局 D.世界知识产权组织",answer:"B",module:"模块12",difficulty:"中等"},
+  {id:"Q025",type:"single",question:"中国专利公布公告系统由哪个部门主管？",options:"A.市场监管总局 B.国家知识产权局 C.科技部 D.工信部",answer:"B",module:"模块12",difficulty:"容易"},
+  {id:"Q026",type:"single",question:"以下文献类型标识中哪个是标准？",options:"A.[J] B.[S] C.[D] D.[M]",answer:"B",module:"模块44",difficulty:"容易"},
+  {id:"Q027",type:"single",question:"以下哪个不是文献管理工具？",options:"A.EndNote B.SPSS C.Zotero D.NoteExpress",answer:"B",module:"模块46",difficulty:"容易"},
+  {id:"Q028",type:"single",question:"CNKI的句子检索功能可以进行什么级别的匹配？",options:"A.段落级别 B.句子级别 C.全文级别 D.关键词级别",answer:"B",module:"模块31",difficulty:"中等"},
+  {id:"Q029",type:"single",question:"学习强国平台的核心定位是？",options:"A.学术研究 B.政策学习和思想教育 C.商业培训 D.娱乐休闲",answer:"B",module:"模块18",difficulty:"容易"},
+  {id:"Q030",type:"single",question:"全国标准信息公共服务平台可查询什么？",options:"A.专利信息 B.国家标准信息 C.法律法规 D.企业信用",answer:"B",module:"模块11",difficulty:"容易"},
+  {id:"Q031",type:"single",question:"秘塔AI搜索属于哪类AI工具？",options:"A.图像生成 B.AI搜索 C.代码生成 D.视频剪辑",answer:"B",module:"模块05",difficulty:"容易"},
+  {id:"Q032",type:"single",question:"在GB/T 7714中电子文献的文献类型标识是什么？",options:"A.[E] B.[EB/OL] C.[EL] D.[EC]",answer:"B",module:"模块44",difficulty:"中等"},
+  {id:"Q033",type:"single",question:"学堂在线是由哪个机构发起的MOOC平台？",options:"A.北京大学 B.清华大学 C.浙江大学 D.复旦大学",answer:"B",module:"模块17",difficulty:"容易"},
+  {id:"Q034",type:"single",question:"ProcessOn主要用于什么？",options:"A.在线思维导图绘制 B.文献管理 C.数据统计分析 D.PDF编辑",answer:"A",module:"模块38",difficulty:"容易"},
+  {id:"Q035",type:"single",question:"DataFountain是一个什么类型的平台？",options:"A.学术期刊 B.数据竞赛平台 C.电子图书 D.政府网站",answer:"B",module:"模块07",difficulty:"中等"},
+  {id:"Q036",type:"single",question:"以下哪个平台可查询中国裁判文书？",options:"A.中国裁判文书网 B.中国法律法规网 C.中国司法网 D.中国法院网",answer:"A",module:"模块10",difficulty:"容易"},
+  {id:"Q037",type:"single",question:"Snipaste的主要功能是？",options:"A.PDF编辑 B.截图工具 C.文献管理 D.思维导图",answer:"B",module:"模块40",difficulty:"容易"},
+  {id:"Q038",type:"single",question:"以下哪个属于文献追踪工具？",options:"A.Stork B.XMind C.NoteExpress D.SPSS",answer:"A",module:"模块47",difficulty:"中等"},
+  {id:"Q039",type:"single",question:"中国大学MOOC属于什么类型的平台？",options:"A.在线课程平台 B.文献检索平台 C.数据开放平台 D.专利查询平台",answer:"A",module:"模块17",difficulty:"容易"},
+  {id:"Q040",type:"single",question:"WOS(Web of Science)的核心功能是？",options:"A.中文期刊检索 B.学术引文索引 C.电子书阅读 D.专利查询",answer:"B",module:"模块21",difficulty:"中等"},
+  {id:"Q041",type:"multi",question:"以下哪些属于国内主流AI大模型工具？",options:"A.DeepSeek B.豆包 C.ChatGPT D.智谱清言 E.通义千问",answer:"ABDE",module:"模块03",difficulty:"容易"},
+  {id:"Q042",type:"multi",question:"以下哪些平台可以进行AI图像生成？",options:"A.豆包 B.万相 C.智谱清言 D.Excel E.可灵AI",answer:"ABCE",module:"模块06",difficulty:"容易"},
+  {id:"Q043",type:"multi",question:"以下哪些属于LeapSpace的功能模块？",options:"A.Trust Card B.Claim Radar C.Deep Research D.Code Generator E.Writing Coach",answer:"ABCE",module:"模块05",difficulty:"中等"},
+  {id:"Q044",type:"multi",question:"以下哪些数据库收录学位论文？",options:"A.CNKI B.万方 C.维普 D.Web of Science E.国家图书馆博士论文库",answer:"ABCE",module:"模块23",difficulty:"中等"},
+  {id:"Q045",type:"multi",question:"以下哪些属于布尔逻辑算符？",options:"A.AND B.OR C.NOT D.WITH E.NEAR",answer:"ABC",module:"模块32",difficulty:"容易"},
+  {id:"Q046",type:"multi",question:"以下哪些是国内主要的文献管理工具？",options:"A.知网研学E-study B.NoteExpress C.EndNote D.Zotero E.Notion",answer:"ABCD",module:"模块46",difficulty:"中等"},
+  {id:"Q047",type:"multi",question:"以下哪些属于学术不端行为？",options:"A.抄袭 B.伪造数据 C.一稿多投 D.不当署名 E.使用AI进行语言润色",answer:"ABCD",module:"模块43",difficulty:"容易"},
+  {id:"Q048",type:"multi",question:"以下哪些平台可查询法律法规信息？",options:"A.国家法律法规数据库 B.人民法院案例库 C.中国裁判文书网 D.百度百科 E.国家行政法规库",answer:"ABCE",module:"模块10",difficulty:"中等"},
+  {id:"Q049",type:"multi",question:"以下哪些是学术期刊评价指标？",options:"A.影响因子 B.CiteScore C.h-index D.百度指数 E.期刊分区",answer:"ABCE",module:"模块42",difficulty:"中等"},
+  {id:"Q050",type:"multi",question:"以下哪些属于截词检索的符号？",options:"A.* B.? C.% D.$",answer:"AB",module:"模块33",difficulty:"中等"},
+  {id:"Q051",type:"multi",question:"以下哪些平台提供政府开放数据？",options:"A.国家统计局 B.各城市政府数据开放平台 C.国家科学数据中心 D.百度搜索 E.World Bank开放数据",answer:"ABCE",module:"模块09",difficulty:"中等"},
+  {id:"Q052",type:"multi",question:"以下哪些是信息检索中常用的字段限制？",options:"A.SU主题 B.TI题名 C.KY关键词 D.FT全文 E.DT数据类型",answer:"ABCD",module:"模块36",difficulty:"中等"},
+  {id:"Q053",type:"multi",question:"以下哪些工具可用于数据可视化？",options:"A.Excel B.Tableau C.ECharts D.Flourish E.Word",answer:"ABCD",module:"模块49",difficulty:"容易"},
+  {id:"Q054",type:"multi",question:"以下哪些是专利检索系统？",options:"A.中国专利公布公告系统 B.USPTO C.Espacenet D.Patentscope E.CNKI",answer:"ABCD",module:"模块12",difficulty:"中等"},
+  {id:"Q055",type:"multi",question:"以下哪些属于生成式AI相关的法规文件？",options:"A.生成式人工智能服务管理暂行办法 B.生成式人工智能服务安全基本要求 C.数据安全法 D.人工智能拟人化互动服务管理暂行办法",answer:"ABD",module:"模块01",difficulty:"中等"},
+  {id:"Q056",type:"multi",question:"以下哪些平台提供AI学习资源？",options:"A.阿里云开发者社区 B.科大讯飞AI大学堂 C.华为云昇腾AI专区 D.国家统计局",answer:"ABC",module:"模块02",difficulty:"容易"},
+  {id:"Q057",type:"multi",question:"国家图书馆可以提供哪些数字资源服务？",options:"A.古籍数字化资源 B.民国文献 C.馆藏目录查询 D.联合编目与文献传递",answer:"ABCD",module:"模块20",difficulty:"中等"},
+  {id:"Q058",type:"multi",question:"以下哪些属于信息检索的途径？",options:"A.网络检索 B.数据库检索 C.馆藏目录检索 D.人工智能检索",answer:"ABC",module:"模块31",difficulty:"容易"},
+  {id:"Q059",type:"multi",question:"CNKI的高级检索支持哪些检索限定？",options:"A.发表时间 B.文献类型 C.基金资助 D.作者单位 E.参考文献数量",answer:"ABCD",module:"模块31",difficulty:"中等"},
+  {id:"Q060",type:"multi",question:"以下哪些属于国家标准GB/T 7714-2015中的文献类型标识？",options:"A.[J] B.[M] C.[D] D.[C] E.[W]",answer:"ABCD",module:"模块44",difficulty:"中等"},
+  {id:"Q061",type:"judge",question:"CNKI是中文文献数据库不收录外文文献。",options:"对 错",answer:"错",module:"模块21",difficulty:"容易"},
+  {id:"Q062",type:"judge",question:"DOAJ是一个收录开放获取期刊的权威目录。",options:"对 错",answer:"对",module:"模块24",difficulty:"中等"},
+  {id:"Q063",type:"judge",question:"百度学术属于学术搜索引擎检索结果偏重学术文献。",options:"对 错",answer:"对",module:"模块26",difficulty:"容易"},
+  {id:"Q064",type:"judge",question:"影响因子可以直接衡量单篇论文的学术质量。",options:"对 错",answer:"错",module:"模块42",difficulty:"中等"},
+  {id:"Q065",type:"judge",question:"国家反诈中心APP只能拦截电话不能检测APP风险。",options:"对 错",answer:"错",module:"模块13",difficulty:"容易"},
+  {id:"Q066",type:"judge",question:"专利检索系统中中国专利公布公告系统由国家知识产权局主管。",options:"对 错",answer:"对",module:"模块12",difficulty:"容易"},
+  {id:"Q067",type:"judge",question:"在GB/T 7714中电子期刊文献的标识是[J/OL]。",options:"对 错",answer:"对",module:"模块44",difficulty:"困难"},
+  {id:"Q068",type:"judge",question:"PubMed是一个中文医学文献数据库。",options:"对 错",answer:"错",module:"模块10",difficulty:"容易"},
+  {id:"Q069",type:"judge",question:"讯飞星火以语音交互能力强著称是科大讯飞的产品。",options:"对 错",answer:"对",module:"模块03",difficulty:"容易"},
+  {id:"Q070",type:"judge",question:"截词检索中*代表匹配零个或任意多个字符。",options:"对 错",answer:"对",module:"模块33",difficulty:"容易"},
+  {id:"Q071",type:"judge",question:"国家自然科学基金大数据知识管理服务门户可查询自科基金项目信息。",options:"对 错",answer:"对",module:"模块25",difficulty:"容易"},
+  {id:"Q072",type:"judge",question:"HathiTrust是一个免费的电子书平台。",options:"对 错",answer:"对",module:"模块19",difficulty:"容易"},
+  {id:"Q073",type:"judge",question:"万相是腾讯推出的AI图像和视频生成工具。",options:"对 错",answer:"错",module:"模块06",difficulty:"中等"},
+  {id:"Q074",type:"judge",question:"学术论文排版只能使用LaTeX不能使用Word或WPS。",options:"对 错",answer:"错",module:"模块45",difficulty:"容易"},
+  {id:"Q075",type:"judge",question:"XMind是一款思维导图工具。",options:"对 错",answer:"对",module:"模块38",difficulty:"容易"},
+  {id:"Q076",type:"judge",question:"STORK是一个文献追踪工具可推送最新研究进展。",options:"对 错",answer:"对",module:"模块47",difficulty:"中等"},
+  {id:"Q077",type:"judge",question:"中国裁判文书网是查询法律法规的权威平台。",options:"对 错",answer:"错",module:"模块10",difficulty:"中等"},
+  {id:"Q078",type:"judge",question:"E-study是CNKI推出的文献管理工具。",options:"对 错",answer:"对",module:"模块46",difficulty:"容易"},
+  {id:"Q079",type:"judge",question:"数据可视化中饼图适合展示多组数据的趋势变化。",options:"对 错",answer:"错",module:"模块49",difficulty:"中等"},
+  {id:"Q080",type:"judge",question:"在信息检索中双引号用于精确匹配。",options:"对 错",answer:"对",module:"模块34",difficulty:"容易"}
+];
+
+// ===== APP STATE =====
+let currentPage = 'home';
+let examState = null;
+let examRunning = false;
+let examInterval = null;
+
+document.querySelectorAll('.nav-item').forEach(el => {
+  el.addEventListener('click', () => switchPage(el.dataset.page));
+});
+
+function switchPage(page) {
+  if (examRunning && page !== 'exam') {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    showModal('离开考试？', '模拟考试正在进行中，离开将中断此次考试。', () => {
+      endExam(true);
+      switchPageDirect(page);
+    });
+    document.querySelector('.nav-item[data-page="exam"]').classList.add('active');
+    return;
+  }
+  switchPageDirect(page);
+}
+
+function switchPageDirect(page) {
+  currentPage = page;
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.page === page);
+  });
+  document.querySelectorAll('.page').forEach(el => {
+    el.classList.toggle('active', el.id === 'page-' + page);
+  });
+  if (page === 'modules') renderModules(document.getElementById('moduleSearch').value);
+  if (page === 'tools') renderTools(document.getElementById('toolSearch').value);
+  if (page === 'errors') renderErrors();
+  if (page === 'exam') renderExam();
+  if (page === 'predict') renderPredictions();
+  if (page === 'wrong') renderWrong();
+  if (page === 'progress') renderProgress();
+}
+
+function showModal(title, text, onConfirm) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalText').textContent = text;
+  document.getElementById('modal').classList.add('show');
+  document.getElementById('modalConfirm').onclick = function() {
+    closeModal();
+    if (onConfirm) onConfirm();
+  };
+}
+function closeModal() { document.getElementById('modal').classList.remove('show'); }
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+document.addEventListener('keydown', function(e) {
+  if (e.altKey && e.key >= '1' && e.key <= '8') {
+    e.preventDefault();
+    const pages = ['home','modules','tools','errors','exam','predict','wrong','progress'];
+    switchPage(pages[parseInt(e.key)-1]);
+  }
+  if (examRunning && currentPage === 'exam') {
+    if (e.key === 'ArrowLeft') { e.preventDefault(); prevQuestion(); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); nextQuestion(); }
+    if (['1','2','3','4'].includes(e.key)) {
+      e.preventDefault();
+      const opt = document.querySelector('.option[data-idx="' + (parseInt(e.key)-1) + '"]');
+      if (opt && !opt.classList.contains('disabled')) opt.click();
+    }
+  }
+});
+
+// ===== MODULES =====
+function renderModules(search) {
+  const container = document.getElementById('moduleContainer');
+  let html = '';
+  const s = (search || '').toLowerCase().trim();
+  MODULE_GROUPS.forEach((group, gi) => {
+    const groupModules = group[1].map(id => {
+      const modIdx = parseInt(id.replace('模块','')) - 1;
+      const mod = MODULES[modIdx];
+      const match = !s || mod[0].toLowerCase().includes(s) || mod[1].toLowerCase().includes(s);
+      return { id, mod, match };
+    });
+    const visible = groupModules.filter(m => m.match);
+    if (visible.length === 0 && s) return;
+    html += '<div class="module-group fade-in">';
+    html += '<div class="group-header">' + group[0] + ' <span>(' + group[1].length + '个模块)</span></div>';
+    groupModules.forEach(({ id, mod, match }) => {
+      if (!match && s) return;
+      html += '<div class="card"><div class="card-title" onclick="toggleModule(this)">';
+      html += '<span>' + id + ' ' + mod[0] + '</span>';
+      html += '<span class="toggle open">&#9660;</span></div>';
+      html += '<div class="card-body open">';
+      mod[1].split('；').forEach(p => {
+        html += '<span class="tag">' + p.trim() + '</span> ';
+      });
+      html += '</div></div>';
+    });
+    html += '</div>';
+  });
+  container.innerHTML = html || '<div class="empty-state">未找到匹配的模块</div>';
+}
+
+function toggleModule(el) {
+  const body = el.nextElementSibling;
+  const toggle = el.querySelector('.toggle');
+  body.classList.toggle('open');
+  toggle.classList.toggle('open');
+}
+
+// ===== TOOLS =====
+function renderTools(search) {
+  const container = document.getElementById('toolContainer');
+  const s = (search || '').toLowerCase().trim();
+  let html = '';
+  TOOLS.forEach(t => {
+    const match = !s || t[0].toLowerCase().includes(s) || t[1].includes(s) || t[3].includes(s) || t[4].includes(s);
+    if (!match) return;
+    html += '<div class="tool-card fade-in">';
+    html += '<div class="tool-name">' + t[0] + '</div>';
+    html += '<div class="tool-provider">' + t[1] + ' - ' + t[2] + '</div>';
+    html += '<div class="tool-tags">';
+    t[3].split('/').forEach(tag => {
+      html += '<span class="tag">' + tag.trim() + '</span>';
+    });
+    html += '</div>';
+    html += '<div class="tool-desc">' + t[4] + '</div>';
+    html += '</div>';
+  });
+  container.innerHTML = html || '<div class="empty-state">未找到匹配的工具</div>';
+}
+
+// ===== ERRORS =====
+function renderErrors() {
+  const container = document.getElementById('errorContainer');
+  let html = '';
+  ERRORS.forEach((e, i) => {
+    html += '<div class="error-item fade-in">';
+    html += '<h3>' + (i+1) + '. ' + e[0] + '</h3>';
+    html += '<p>' + e[1] + '</p></div>';
+  });
+  container.innerHTML = html;
+}
+
+// ===== EXAM =====
+function renderExam() {
+  const container = document.getElementById('examContainer');
+  if (!examRunning) {
+    container.innerHTML = '<div class="exam-start fade-in">\
+      <h2>模拟考试</h2>\
+      <p>系统从题库中随机抽取50题</p>\
+      <p>包括 20道单选题 + 20道多选题 + 10道判断题</p>\
+      <div class="rules" style="background:var(--accent-light);padding:16px;border-radius:8px;">\
+        <p style="font-weight:600;margin-bottom:8px;color:var(--primary-dark);">考试规则</p>\
+        <li>考试时长60分钟，超时自动交卷</li>\
+        <li>开卷考试，不可跳题回改</li>\
+        <li>多选题漏选/错选/多选均不得分</li>\
+        <li>键盘快捷键：1-4选择答案，左右方向键切题</li>\
+        <li>错题自动记录，可反复练习</li>\
+      </div>\
+      <div style="margin-top:20px;"><button class="btn btn-primary" onclick="startExam()">开始考试</button></div>\
+    </div>';
+    return;
+  }
+  const q = examState.questions[examState.currentIndex];
+  if (!q) return;
+  const total = examState.questions.length;
+  const idx = examState.currentIndex;
+  const tl = examState.timeLeft;
+  let html = '<div class="exam-container fade-in">';
+  html += '<div class="exam-header"><span class="exam-progress">' + (idx+1) + ' / ' + total + '</span>';
+  html += '<span class="exam-timer" id="examTimer">' + pad2(Math.floor(tl/60)) + ':' + pad2(tl%60) + '</span></div>';
+  html += '<div class="question-card">';
+  html += '<div class="q-number">' + q.id + '</div>';
+  let tlbl = '', tcls = '';
+  if (q.type === 'single') { tlbl = '单选题'; tcls = 'single'; }
+  else if (q.type === 'multi') { tlbl = '多选题'; tcls = 'multi'; }
+  else { tlbl = '判断题'; tcls = 'judge'; }
+  html += '<div class="q-type ' + tcls + '">' + tlbl + '</div>';
+  html += '<div class="q-text">' + q.question + '</div>';
+  html += '<div class="options" id="optionsContainer">';
+  const opts = q.options.split(/[A-E]\./).filter(s => s.trim());
+  const labels = q.options.match(/[A-E]/g) || [];
+  const answer = examState.answers[idx] || [];
+  opts.forEach((opt, oi) => {
+    const label = labels[oi] || String.fromCharCode(65 + oi);
+    const selected = answer.includes(label);
+    const inputType = q.type === 'multi' ? 'checkbox' : 'radio';
+    html += '<div class="option' + (selected ? ' selected' : '') + '" data-idx="' + oi + '" data-val="' + label + '" onclick="selectOption(this,\'' + q.type + '\')">';
+    html += '<input type="' + inputType + '" name="q_' + q.id + '" value="' + label + '" ' + (selected ? 'checked' : '') + '>';
+    html += label + '. ' + opt + '</div>';
+  });
+  html += '</div><div class="exam-actions">';
+  html += '<button class="btn btn-outline" onclick="prevQuestion()"' + (idx===0?' disabled style="opacity:0.5"':'') + '>上一题</button>';
+  if (idx === total-1) {
+    html += '<button class="btn btn-success" onclick="submitExam()">交卷</button>';
+  } else {
+    html += '<button class="btn btn-primary" onclick="nextQuestion()">下一题</button>';
+  }
+  html += '</div>';
+  html += '<div style="text-align:center;margin-top:10px;font-size:12px;color:var(--text-secondary);">';
+  html += '快捷键 <span class="kbd">1-4</span> 选答案 <span class="kbd">方向键</span> 切题</div>';
+  html += '</div></div>';
+  container.innerHTML = html;
+}
+function pad2(n) { return String(n).padStart(2,'0'); }
+
+function selectOption(el, type) {
+  if (!examRunning) return;
+  const idx = examState.currentIndex;
+  const val = el.dataset.val;
+  if (type === 'single' || type === 'judge') {
+    document.querySelectorAll('.option').forEach(o => { o.classList.remove('selected'); o.querySelector('input').checked = false; });
+    el.classList.add('selected'); el.querySelector('input').checked = true;
+    examState.answers[idx] = [val];
+  } else {
+    el.classList.toggle('selected');
+    const cb = el.querySelector('input');
+    cb.checked = !cb.checked;
+    const selected = [];
+    document.querySelectorAll('.option.selected').forEach(o => selected.push(o.dataset.val));
+    examState.answers[idx] = selected;
+  }
+}
+
+function prevQuestion() {
+  if (!examRunning || examState.currentIndex <= 0) return;
+  examState.currentIndex--; renderExam();
+}
+function nextQuestion() {
+  if (!examRunning) return;
+  if (examState.currentIndex < examState.questions.length-1) {
+    examState.currentIndex++; renderExam();
+  }
+}
+
+function startExam() {
+  const singles = QUESTION_BANK.filter(q => q.type === 'single');
+  const multis = QUESTION_BANK.filter(q => q.type === 'multi');
+  const judges = QUESTION_BANK.filter(q => q.type === 'judge');
+  function shuffle(a) { const b=[...a]; for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];} return b; }
+  const qs = shuffle([...shuffle(singles).slice(0,20), ...shuffle(multis).slice(0,20), ...shuffle(judges).slice(0,10)]);
+  examState = { questions: qs, currentIndex: 0, answers: qs.map(()=>[]), timeLeft: 3600 };
+  examRunning = true;
+  if (examInterval) clearInterval(examInterval);
+  examInterval = setInterval(() => {
+    if (!examRunning) return;
+    examState.timeLeft--;
+    const el = document.getElementById('examTimer');
+    if (el) el.textContent = pad2(Math.floor(examState.timeLeft/60)) + ':' + pad2(examState.timeLeft%60);
+    if (examState.timeLeft <= 0) { clearInterval(examInterval); submitExam(); }
+  }, 1000);
+  renderExam();
+}
+
+function submitExam() {
+  if (!examRunning) return;
+  const unanswered = examState.answers.filter(a => a.length===0).length;
+  if (unanswered > 0) {
+    showModal('确认交卷？', '还有 ' + unanswered + ' 道题未作答，确定要交卷吗？', function() { doSubmit(); });
+  } else {
+    showModal('确认交卷？', '所有题目已作答，确定要交卷吗？', function() { doSubmit(); });
+  }
+}
+
+function endExam(keepRunning) {
+  if (examInterval) clearInterval(examInterval);
+  examRunning = false;
+  examState = null;
+  renderExam();
+}
+
+function doSubmit() {
+  if (examInterval) clearInterval(examInterval);
+  examRunning = false;
+  let correct=0, wrong=0, score=0;
+  const details = [];
+  examState.questions.forEach((q, i) => {
+    const ua = examState.answers[i] || [];
+    const ca = q.answer.split('').filter(a=>a.trim());
+    const isC = arraysEqual([...ua].sort(), [...ca].sort());
+    let p = q.type==='single'?2 : q.type==='multi'?2.5 : 1;
+    if (isC) { correct++; score+=p; }
+    else { wrong++; saveWrong(q,ua.join(''),q.answer); }
+    details.push({q, ua:ua.join(''), ca:q.answer, isC, p });
+  });
+  const total = examState.questions.length;
+  const pct = Math.round(score/100*100);
+  const c = document.getElementById('examContainer');
+  let html = '<div class="exam-container fade-in"><div class="result-card card">';
+  html += '<h2 style="color:var(--primary-dark);">考试完成</h2>';
+  html += '<div class="result-score">' + Math.round(score) + ' / 100</div>';
+  html += '<div style="font-size:14px;color:var(--text-secondary);">正确率 ' + pct + '%</div>';
+  html += '<div class="result-detail">';
+  html += '<div class="result-stat"><div class="num">' + correct + '</div><div class="label">正确</div></div>';
+  html += '<div class="result-stat"><div class="num">' + wrong + '</div><div class="label">错误</div></div>';
+  html += '<div class="result-stat"><div class="num">' + total + '</div><div class="label">总题数</div></div></div>';
+  // Pie chart SVG
+  html += '<div class="result-chart inline-chart">';
+  html += '<svg viewBox="0 0 200 200" style="width:180px;height:180px;">';
+  html += '<circle cx="100" cy="100" r="80" fill="none" stroke="#E8DDD0" stroke-width="20"/>';
+  const correctPct = correct/total;
+  const r = 80;
+  const circ = 2 * Math.PI * r;
+  const offCorrect = circ * (1 - correctPct);
+  html += '<circle cx="100" cy="100" r="80" fill="none" stroke="#8BA888" stroke-width="20" transform="rotate(-90 100 100)" stroke-dasharray="' + circ + '" stroke-dashoffset="' + offCorrect + '" style="transition:all 1s;"/>';
+  html += '<text x="100" y="95" text-anchor="middle" font-size="28" font-weight="700" fill="#3D2B1F">' + pct + '%</text>';
+  html += '<text x="100" y="115" text-anchor="middle" font-size="12" fill="#7A6B5D">正确率</text></svg></div>';
+  // Legend
+  html += '<div style="display:flex;gap:20px;justify-content:center;margin:8px 0 16px;font-size:13px;">';
+  html += '<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#8BA888;margin-right:4px;"></span>正确(' + correct + ')</span>';
+  html += '<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#C48070;margin-right:4px;"></span>错误(' + wrong + ')</span></div>';
+  // Module distribution
+  const mn = {'模块01':'AI素养','模块02':'AI素养','模块03':'AI素养','模块04':'AI素养','模块05':'AI素养','模块06':'AI素养','模块07':'AI素养',
+    '模块08':'政府与公开信息','模块09':'政府与公开信息','模块10':'政府与公开信息','模块11':'政府与公开信息','模块12':'政府与公开信息','模块13':'政府与公开信息','模块14':'政府与公开信息','模块15':'政府与公开信息','模块16':'政府与公开信息',
+    '模块17':'学术资源','模块18':'学术资源','模块19':'学术资源','模块20':'学术资源','模块21':'学术资源','模块22':'学术资源','模块23':'学术资源','模块24':'学术资源','模块25':'学术资源','模块26':'学术资源','模块27':'学术资源','模块28':'学术资源','模块29':'学术资源','模块30':'学术资源',
+    '模块31':'检索技术','模块32':'检索技术','模块33':'检索技术','模块34':'检索技术','模块35':'检索技术','模块36':'检索技术','模块37':'检索技术',
+    '模块38':'工具与软件','模块39':'工具与软件','模块40':'工具与软件','模块41':'工具与软件','模块42':'工具与软件','模块43':'工具与软件','模块44':'工具与软件','模块45':'工具与软件','模块46':'工具与软件','模块47':'工具与软件','模块48':'工具与软件','模块49':'工具与软件','模块50':'工具与软件'};
+  const td = {}; details.forEach(d => { const t = mn[d.q.module]||'其他'; if(!td[t]) td[t]={total:0,correct:0}; td[t].total++; if(d.isC) td[t].correct++; });
+  html += '<div style="text-align:left;margin:12px 0 16px;"><h3 style="font-size:14px;color:var(--primary-dark);margin-bottom:8px;">主题分布</h3>';
+  Object.entries(td).forEach(([name,data]) => {
+    const tp = data.total>0 ? Math.round(data.correct/data.total*100) : 0;
+    html += '<div style="margin-bottom:6px;"><div style="display:flex;justify-content:space-between;font-size:13px;"><span>' + name + '</span><span>' + data.correct + '/' + data.total + ' (' + tp + '%)</span></div>';
+    html += '<div class="progress-bar"><div class="progress-fill" style="width:' + tp + '%"></div></div></div>';
+  });
+  html += '</div>';
+  // Review
+  html += '<div class="result-review"><h3 style="font-size:14px;color:var(--primary-dark);margin-bottom:8px;">答题详情</h3>';
+  details.forEach((d,i) => {
+    html += '<div class="result-item"><div class="ri-q">' + (i+1) + '. ' + d.q.question + ' <span class="tag" style="background:' + (d.isC?'#8BA888':'#C48070') + ';color:#fff;">' + (d.isC?'正确':'错误') + ' +' + d.p + '分</span></div>';
+    html += '<div class="ri-a ' + (d.isC?'c':'w') + '">你的答案: ' + (d.ua||'未作答') + ' | 正确答案: ' + d.ca + '</div>';
+    html += '<div style="font-size:12px;color:var(--text-secondary);">' + d.q.module + '</div></div>';
+  });
+  html += '</div>';
+  html += '<div style="margin-top:16px;"><button class="btn btn-primary" onclick="endExam();renderExam();">返回考试首页</button></div>';
+  html += '</div></div>';
+  c.innerHTML = html;
+}
+
+function arraysEqual(a,b) { if(a.length!==b.length)return false; for(let i=0;i<a.length;i++) if(a[i]!==b[i]) return false; return true; }
+
+// ===== WRONG ANSWERS =====
+function getWrongAnswers() { try { return JSON.parse(localStorage.getItem('exam_wrong')||'{}'); } catch(e){return {};} }
+function saveWrong(q, ua, ca) {
+  const w = getWrongAnswers();
+  const k = q.id;
+  if (!w[k]) w[k] = {question:q, userAns:ua, correctAns:ca, wrongCount:1, correctCount:0};
+  else { w[k].wrongCount++; w[k].userAns = ua; }
+  localStorage.setItem('exam_wrong', JSON.stringify(w));
+}
+function markCorrect(qid) {
+  const w = getWrongAnswers();
+  if (w[qid]) {
+    w[qid].correctCount++;
+    if (w[qid].correctCount >= 3) delete w[qid];
+    else { w[qid].wrongCount = 0; }
+    localStorage.setItem('exam_wrong', JSON.stringify(w));
+  }
+}
+
+// ===== PREDICTIONS =====
+function renderPredictions() {
+  const c = document.getElementById('predictContainer');
+  let html = '';
+  PREDICTIONS.forEach((p,i) => {
+    const dc = p[1]==='容易'?'diff-easy':p[1]==='中等'?'diff-medium':'diff-hard';
+    const tc = p[0]==='单选题'?'single':p[0]==='多选题'?'multi':'judge';
+    html += '<div class="pred-card fade-in"><div class="pred-header">';
+    html += '<span class="pred-id">P' + String(i+1).padStart(3,'0') + '</span>';
+    html += '<span class="q-type ' + tc + '">' + p[0] + '</span>';
+    html += '<span class="pred-difficulty ' + dc + '">' + p[1] + '</span></div>';
+    html += '<div class="pred-question">' + p[2] + '</div><div class="pred-options">';
+    const opts = p[3].split(/[A-E]\./).filter(s=>s.trim());
+    const labels = p[3].match(/[A-E]/g)||[];
+    opts.forEach((o,oi) => { html += '<div class="pred-option">' + (labels[oi]||String.fromCharCode(65+oi)) + '. ' + o.trim() + '</div>'; });
+    html += '</div><div class="pred-answer"><strong>答案：' + p[4] + '</strong></div>';
+    html += '<div class="pred-analysis">' + p[5] + '</div>';
+    if(p[6]) html += '<div class="pred-basis">预测依据：' + p[6] + '</div>';
+    html += '</div>';
+  });
+  c.innerHTML = html;
+}
+
+// ===== WRONG =====
+function renderWrong(filter) {
+  const c = document.getElementById('wrongContainer');
+  const ce = document.getElementById('wrongCount');
+  const w = getWrongAnswers();
+  const keys = Object.keys(w);
+  ce.textContent = '共 ' + keys.length + ' 道错题';
+  let fh = '<button class="filter-btn' + (!filter||filter==='all'?' active':'') + '" onclick="renderWrong(\'all\')">全部</button>';
+  fh += '<button class="filter-btn' + (filter==='single'?' active':'') + '" onclick="renderWrong(\'single\')">单选</button>';
+  fh += '<button class="filter-btn' + (filter==='multi'?' active':'') + '" onclick="renderWrong(\'multi\')">多选</button>';
+  fh += '<button class="filter-btn' + (filter==='judge'?' active':'') + '" onclick="renderWrong(\'judge\')">判断</button>';
+  document.getElementById('wrongFilter').innerHTML = fh;
+  if (keys.length===0) { c.innerHTML = '<div class="empty-state">暂无错题记录，继续加油</div>'; return; }
+  let html = '<div class="card">';
+  keys.forEach(k => {
+    const wd = w[k]; const q = wd.question;
+    if (filter && filter!=='all' && q.type!==filter) return;
+    html += '<div class="wrong-item"><div class="wi-q">' + k + '. ' + q.question + '</div>';
+    html += '<div class="wi-info"><span class="q-type ' + (q.type==='single'?'single':q.type==='multi'?'multi':'judge') + '" style="display:inline-block;margin-right:6px;">' +
+      (q.type==='single'?'单选':q.type==='multi'?'多选':'判断') + '</span>';
+    html += '<span class="wi-correct">你的答案: ' + wd.userAns + '</span> | 正确答案: ' + wd.correctAns;
+    html += ' | 错误 ' + wd.wrongCount + ' 次';
+    if (wd.correctCount>0) html += ' | 做对 ' + wd.correctCount + '/3 次';
+    html += '</div><div style="margin-top:6px;">';
+    html += '<button class="btn btn-small btn-outline" onclick="markCorrect(\''+k+'\');renderWrong(\''+(filter||'all')+'\');">标记为已掌握</button>';
+    html += '</div></div>';
+  });
+  html += '</div>';
+  c.innerHTML = html;
+}
+
+// ===== PROGRESS =====
+function renderProgress() {
+  const c = document.getElementById('progressContainer');
+  const w = getWrongAnswers();
+  const mm = {};
+  MODULES.forEach((m,i) => {
+    const mid = '模块' + String(i+1).padStart(2,'0');
+    let wc = 0;
+    Object.values(w).forEach(wd => { if (wd.question.module === mid) wc++; });
+    mm[mid] = Math.max(0, Math.min(100, 100 - wc * 10));
+  });
+  const avg = Object.values(mm).reduce((a,b)=>a+b,0)/50;
+  let html = '<div class="fade-in"><div class="card" style="text-align:center;padding:20px;">';
+  html += '<h2 style="font-size:20px;color:var(--primary-dark);">学习进度</h2>';
+  html += '<div style="font-size:36px;font-weight:700;color:var(--primary-dark);margin:8px 0;">' + Math.round(avg) + '%</div>';
+  html += '<div style="font-size:13px;color:var(--text-secondary);">整体掌握度</div>';
+  html += '<div class="progress-bar" style="max-width:300px;margin:10px auto;"><div class="progress-fill" style="width:' + avg + '%;"></div></div>';
+  html += '<div style="font-size:12px;color:var(--text-secondary);">掌握度基于错题数据计算</div></div>';
+  const gn = {'模块01':'AI素养','模块02':'AI素养','模块03':'AI素养','模块04':'AI素养','模块05':'AI素养','模块06':'AI素养','模块07':'AI素养',
+    '模块08':'政府与公开信息','模块09':'政府与公开信息','模块10':'政府与公开信息','模块11':'政府与公开信息','模块12':'政府与公开信息','模块13':'政府与公开信息','模块14':'政府与公开信息','模块15':'政府与公开信息','模块16':'政府与公开信息',
+    '模块17':'学术资源','模块18':'学术资源','模块19':'学术资源','模块20':'学术资源','模块21':'学术资源','模块22':'学术资源','模块23':'学术资源','模块24':'学术资源','模块25':'学术资源','模块26':'学术资源','模块27':'学术资源','模块28':'学术资源','模块29':'学术资源','模块30':'学术资源',
+    '模块31':'检索技术','模块32':'检索技术','模块33':'检索技术','模块34':'检索技术','模块35':'检索技术','模块36':'检索技术','模块37':'检索技术',
+    '模块38':'工具与软件','模块39':'工具与软件','模块40':'工具与软件','模块41':'工具与软件','模块42':'工具与软件','模块43':'工具与软件','模块44':'工具与软件','模块45':'工具与软件','模块46':'工具与软件','模块47':'工具与软件','模块48':'工具与软件','模块49':'工具与软件','模块50':'工具与软件'};
+  const gm = {};
+  Object.entries(mm).forEach(([mid, mastery]) => {
+    const g = gn[mid]||'其他';
+    if(!gm[g]) gm[g]={sum:0,count:0};
+    gm[g].sum+=mastery; gm[g].count++;
+  });
+  Object.entries(gm).forEach(([name,data]) => {
+    const a = data.sum/data.count;
+    html += '<div class="card"><div class="progress-item"><div class="progress-header"><span class="progress-title">' + name + '</span><span class="progress-pct">' + Math.round(a) + '%</span></div>';
+    html += '<div class="progress-bar"><div class="progress-fill" style="width:' + a + '%"></div></div></div>';
+    html += '<div style="margin-top:8px;font-size:12px;color:var(--text-secondary);">' + data.count + '个模块</div></div>';
+  });
+  html += '<div class="card"><h3 style="font-size:14px;color:var(--primary-dark);margin-bottom:10px;">各模块掌握度</h3>';
+  MODULES.forEach((m,i) => {
+    const mid = '模块' + String(i+1).padStart(2,'0');
+    const mastery = mm[mid];
+    html += '<div class="progress-item"><div class="progress-header"><span class="progress-title">' + mid + ' ' + m[0] + '</span><span class="progress-pct">' + Math.round(mastery) + '%</span></div>';
+    html += '<div class="progress-bar"><div class="progress-fill" style="width:' + mastery + '%"></div></div></div>';
+  });
+  html += '</div></div>';
+  c.innerHTML = html;
+}
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', function() {
+  renderModules(''); renderTools(''); renderErrors(); renderExam();
+  renderPredictions(); renderWrong(); renderProgress();
+});
+</script>
+</body>
+</html>
